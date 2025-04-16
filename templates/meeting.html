@@ -1,0 +1,73 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meetings Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* Ensure the meeting container takes up full screen */
+        #root {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 font-sans text-white">
+    <!-- Navbar -->
+    <nav class="bg-blue-900 p-5 flex justify-between items-center shadow-lg">
+        <h1 class="text-2xl font-bold text-yellow-400">Meetings </h1>
+        <div class="text-center text-yellow-300 text-lg font-extrabold">Seamless Video Conferencing - Collaborate with your team in real time.</div>
+        <a href="{{ url_for('dashboard') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-cyan-400 hover:text-gray-900 transition-all text-lg font-bold shadow-md">
+            Back to Dashboard
+        </a>
+    </nav>
+
+    <!-- Fullscreen Meeting Section -->
+    <section class="w-screen h-screen">
+        <div id="root"></div>
+    </section>
+
+    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+    <script>
+    window.onload = function () {
+        function getUrlParams(url) {
+            let urlStr = url.split('?')[1];
+            const urlSearchParams = new URLSearchParams(urlStr);
+            return Object.fromEntries(urlSearchParams.entries());
+        }
+
+        const roomID = getUrlParams(window.location.href)['roomID'] || (Math.floor(Math.random() * 10000) + "");
+        const userID = Math.floor(Math.random() * 10000) + "";
+        const userName = "{{username}}";
+        const appID = 1233809905;
+        const serverSecret = "65971b05475bfe42b558dbf769895aa2";
+        const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
+
+        const zp = ZegoUIKitPrebuilt.create(kitToken);
+        zp.joinRoom({
+            container: document.querySelector("#root"),
+            sharedLinks: [{
+                name: 'Personal link',
+                url: window.location.protocol + '//' + window.location.host  + window.location.pathname + '?roomID=' + roomID,
+            }],
+            scenario: {
+                mode: ZegoUIKitPrebuilt.VideoConference,
+            },
+            turnOnMicrophoneWhenJoining: true,
+            turnOnCameraWhenJoining: true,
+            showMyCameraToggleButton: true,
+            showMyMicrophoneToggleButton: true,
+            showAudioVideoSettingsButton: true,
+            showScreenSharingButton: true,
+            showTextChat: true,
+            showUserList: true,
+            maxUsers: 10,
+            layout: "Grid",
+            showLayoutButton: true,
+        });
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Intelligent Resource Finder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: url('../static/images/resource.jpeg') no-repeat center center fixed;
+      background-size: cover;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .scrollable::-webkit-scrollbar {
+      width: 6px;
+    }
+    .scrollable::-webkit-scrollbar-thumb {
+      background: #4a5568;
+      border-radius: 6px;
+    }
+    .scrollable::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    input::placeholder {
+      color: #cbd5e0;
+    }
+    li a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4 py-10 text-white">
+  <div class="absolute top-6 right-6 z-20">
+    <a href="{{ url_for('dashboard') }}" 
+       class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold px-4 py-2 rounded-lg shadow-lg transition-all duration-300">
+      🏠 Go to Dashboard
+    </a>
+  </div>
+
+  <div class="w-full max-w-4xl glass rounded-xl shadow-2xl p-6 md:p-10">
+    <h1 class="text-4xl md:text-5xl font-bold text-center mb-6">🔎 Intelligent Resource Finder</h1>
+
+    <div class="relative mb-6">
+      <input type="text" id="searchQuery"
+             placeholder="Search GitHub, Kaggle, OpenLibrary, arXiv..."
+             class="w-full p-4 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-blue-500 outline-none transition"/>
+      <button type="button" onclick="searchResources()"
+              class="absolute right-3 top-2 md:top-2 bg-blue-600 px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all">
+        Search
+      </button>
+    </div>
+
+    <div id="results" class="space-y-6">
+      <div>
+        <h2 class="text-2xl font-semibold mb-2">✨ About Resource</h2>
+        <p id="summary" class="text-gray-300 bg-gray-800 p-4 rounded-lg">Results will be displayed here...</p>
+      </div>
+
+      <div>
+        <h2 class="text-2xl font-semibold mb-2">📌 GitHub Repositories</h2>
+        <ul id="githubResults" class="scrollable max-h-60 overflow-y-auto space-y-2 bg-gray-900 p-4 rounded-lg"></ul>
+      </div>
+
+      <div>
+        <h2 class="text-2xl font-semibold mb-2">📂 Kaggle Datasets</h2>
+        <ul id="kaggleDatasets" class="scrollable max-h-60 overflow-y-auto space-y-2 bg-gray-900 p-4 rounded-lg"></ul>
+      </div>
+
+      <div>
+        <h2 class="text-2xl font-semibold mb-2">📓 Kaggle Notebooks</h2>
+        <ul id="kaggleNotebooks" class="scrollable max-h-60 overflow-y-auto space-y-2 bg-gray-900 p-4 rounded-lg"></ul>
+      </div>
+
+      <div>
+        <h2 class="text-2xl font-semibold mb-2">📚 OpenLibrary Books</h2>
+        <pre id="openlibrary" class="text-gray-300 bg-gray-800 p-4 rounded-lg scrollable max-h-60 overflow-y-auto whitespace-pre-wrap"></pre>
+      </div>
+
+      <div>
+        <h2 class="text-2xl font-semibold mb-2">🎓 arXiv Papers</h2>
+        <pre id="arxiv" class="text-gray-300 bg-gray-800 p-4 rounded-lg scrollable max-h-60 overflow-y-auto whitespace-pre-wrap"></pre>
+      </div>
+
+      <div>
+        <h2 class="text-2xl font-semibold mb-2">🗃️ Internet Archive</h2>
+        <pre id="archive" class="text-gray-300 bg-gray-800 p-4 rounded-lg scrollable max-h-60 overflow-y-auto whitespace-pre-wrap"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function searchResources() {
+      const query = document.getElementById("searchQuery").value.trim();
+      if (!query) {
+        alert("Please enter a search query.");
+        return;
+      }
+
+      document.getElementById("summary").innerText = "Loading...";
+      document.getElementById("githubResults").innerHTML = "";
+      document.getElementById("kaggleDatasets").innerHTML = "";
+      document.getElementById("kaggleNotebooks").innerHTML = "";
+      document.getElementById("openlibrary").innerText = "";
+      document.getElementById("arxiv").innerText = "";
+      document.getElementById("archive").innerText = "";
+
+      try {
+        const response = await fetch("/search", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ query })
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          alert(err.error || "Something went wrong!");
+          return;
+        }
+
+        const data = await response.json();
+
+        document.getElementById("summary").innerText = data.summary || "No summary available.";
+
+        // GitHub Repositories
+        if (data.github && data.github.length) {
+          data.github.forEach(([name, url]) => {
+            const li = document.createElement("li");
+            li.innerHTML = `<a href="${url}" target="_blank" class="text-blue-400 hover:underline">${name}</a>`;
+            document.getElementById("githubResults").appendChild(li);
+          });
+        }
+
+        // Kaggle Datasets
+        if (data.kaggle?.datasets) {
+          data.kaggle.datasets.forEach(item => {
+            const li = document.createElement("li");
+            li.innerHTML = `<a href="${item.url}" target="_blank" class="text-blue-400 hover:underline">${item.title}</a>`;
+            document.getElementById("kaggleDatasets").appendChild(li);
+          });
+        }
+
+        // Kaggle Notebooks
+        if (data.kaggle?.notebooks) {
+          data.kaggle.notebooks.forEach(item => {
+            const li = document.createElement("li");
+            li.innerHTML = `<a href="${item.url}" target="_blank" class="text-blue-400 hover:underline">${item.title}</a>`;
+            document.getElementById("kaggleNotebooks").appendChild(li);
+          });
+        }
+
+        // OpenLibrary
+if (data.openlibrary && data.openlibrary.length) {
+  document.getElementById("openlibrary").innerHTML = "";
+  data.openlibrary.forEach(item => {
+    const div = document.createElement("div");
+    div.innerHTML = `<a href="${item.url}" target="_blank" class="text-blue-400 hover:underline">${item.title}</a>`;
+    document.getElementById("openlibrary").appendChild(div);
+  });
+}
+
+// arXiv
+if (data.arxiv && data.arxiv.length) {
+  document.getElementById("arxiv").innerHTML = "";
+  data.arxiv.forEach(item => {
+    const div = document.createElement("div");
+    div.innerHTML = `<a href="${item.url}" target="_blank" class="text-blue-400 hover:underline">${item.title}</a>`;
+    document.getElementById("arxiv").appendChild(div);
+  });
+}
+
+// Archive
+if (data.archive && data.archive.length) {
+  document.getElementById("archive").innerHTML = "";
+  data.archive.forEach(item => {
+    const div = document.createElement("div");
+    div.innerHTML = `<a href="${item.url}" target="_blank" class="text-blue-400 hover:underline">${item.title}</a>`;
+    document.getElementById("archive").appendChild(div);
+  });
+}
+
+
+      } catch (error) {
+        console.error("Fetch error:", error);
+        alert("Failed to fetch resources.");
+      }
+    }
+  </script>
+</body>
+</html>

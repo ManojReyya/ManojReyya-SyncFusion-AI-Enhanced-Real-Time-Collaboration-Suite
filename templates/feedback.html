@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-6">
+
+    <!-- Return to Dashboard Button -->
+    <div class="absolute top-6 left-6">
+        <a href="{{ url_for('dashboard') }}" class="bg-gray-800 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-700 transition">
+            ⬅️ Return to Dashboard
+        </a>
+    </div>
+
+    <!-- Feedback Form Container -->
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg text-center">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">We Value Your Feedback 💬</h2>
+        <p class="text-gray-600 mb-6">Let us know what you think about our platform!</p>
+
+        <form action="{{ url_for('submit') }}" method="POST" class="space-y-5">
+            <div>
+                <input type="text" name="name" placeholder="Your Name" required 
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm">
+            </div>
+            <div>
+                <input type="email" name="email" placeholder="Your Email" required 
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm">
+            </div>
+            <div>
+                <textarea name="message" rows="4" placeholder="Write your message here..." required 
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"></textarea>
+            </div>
+            <button type="submit" 
+                class="w-full bg-blue-600 text-white py-3 rounded-lg shadow-md hover:bg-blue-700 transition">
+                🚀 Submit Feedback
+            </button>
+        </form>
+    </div>
+
+    <!-- Feedback List -->
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg mt-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">User Feedbacks</h2>
+
+        <div class="max-h-64 overflow-y-auto space-y-4">
+            {% for feedback in feedbacks %}
+            <div class="p-4 bg-gray-100 rounded-lg shadow-sm">
+                <p class="font-bold text-gray-800">{{ feedback.name }}</p>
+                <p class="text-sm text-gray-600">{{ feedback.email }}</p>
+                <p class="mt-2 text-gray-700">{{ feedback.message }}</p>
+
+                <div class="flex items-center space-x-2 mt-3">
+                    {% if current_user.is_authenticated and feedback.user_id == current_user.id %}
+                    <form action="{{ url_for('edit_feedback', feedback_id=feedback.id) }}" method="post">
+                        <textarea name="message" required class="w-full p-2 border rounded-lg">{{ feedback.message }}</textarea>
+                        <button type="submit" class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition">✏️ Update</button>
+                    </form>
+                    {% endif %}
+
+                    {% if current_user.is_authenticated and current_user.admin %}
+                    <form action="{{ url_for('delete_feedback', feedback_id=feedback.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this feedback?');">
+                        <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-800 transition">❌ Delete</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>

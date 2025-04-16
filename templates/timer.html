@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Task Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-4 py-8" style="background-image: url('../static/images/Timer.jpeg');">
+    <div class="absolute top-6 right-6 z-20">
+        <a href="{{ url_for('dashboard') }}" 
+           class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold px-4 py-2 rounded-lg shadow-lg transition-all duration-300">
+          🏠 Go to Dashboard
+        </a>
+      </div>
+    <!-- Timer Card -->
+    <div class="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-2xl w-full max-w-md text-center">
+        <h2 class="text-2xl font-bold text-blue-800 mb-4">⏱️ Project Task Timer</h2>
+        <input type="text" id="username" placeholder="👤 Enter Username" class="w-full p-3 border rounded-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <input type="text" id="task" placeholder="📝 Enter Task Name" class="w-full p-3 border rounded-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <h3 id="timer" class="text-3xl font-semibold my-4 text-gray-800">00:00:00</h3>
+        
+        <div class="flex flex-wrap justify-between gap-2">
+            <button onclick="startTimer()" id="startBtn" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-800">Start</button>
+            <button onclick="pauseResumeTimer()" id="pauseResumeBtn" class="flex-1 px-4 py-2 bg-yellow-500 text-white rounded-lg hidden hover:bg-yellow-600">Pause</button>
+            <button onclick="stopTimer()" id="stopBtn" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hidden hover:bg-red-800">Stop</button>
+            <button onclick="saveRecord()" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-800">Save</button>
+        </div>
+    </div>
+
+    <!-- Records List -->
+    <div class="bg-white/80 backdrop-blur-md mt-6 p-6 rounded-2xl shadow-2xl w-full max-w-md">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">📋 Task Records</h3>
+        <ul id="records" class="space-y-2 max-h-64 overflow-y-auto"></ul>
+    </div>
+    <script>
+        let startTime, elapsedSeconds = 0, interval, isPaused = false;
+
+        function startTimer() {
+            let task = document.getElementById('task').value;
+            if (!task) {
+                alert("Enter a task name!");
+                return;
+            }
+            startTime = new Date();
+            interval = setInterval(updateTimer, 1000);
+            document.getElementById("startBtn").classList.add("hidden");
+            document.getElementById("pauseResumeBtn").classList.remove("hidden");
+            document.getElementById("stopBtn").classList.remove("hidden");
+        }
+
+        function pauseResumeTimer() {
+            if (isPaused) {
+                startTime = new Date() - elapsedSeconds * 1000;
+                interval = setInterval(updateTimer, 1000);
+                document.getElementById("pauseResumeBtn").textContent = "Pause";
+            } else {
+                clearInterval(interval);
+                document.getElementById("pauseResumeBtn").textContent = "Resume";
+            }
+            isPaused = !isPaused;
+        }
+
+        function stopTimer() {
+            clearInterval(interval);
+            document.getElementById("startBtn").classList.remove("hidden");
+            document.getElementById("pauseResumeBtn").classList.add("hidden");
+            document.getElementById("stopBtn").classList.add("hidden");
+        }
+
+        function updateTimer() {
+            let currentTime = new Date();
+            elapsedSeconds = Math.floor((currentTime - startTime) / 1000);
+            updateTimerDisplay(elapsedSeconds);
+        }
+
+        function updateTimerDisplay(seconds) {
+            let hours = String(Math.floor(seconds / 3600)).padStart(2, '0');
+            let minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+            let secondsStr = String(seconds % 60).padStart(2, '0');
+            document.getElementById('timer').textContent = `${hours}:${minutes}:${secondsStr}`;
+        }
+
+        function saveRecord() {
+            let username = document.getElementById('username').value;
+            let task = document.getElementById('task').value;
+            let duration = document.getElementById('timer').textContent;
+
+            if (!username || !task) {
+                alert("Enter username and task name!");
+                return;
+            }
+
+            fetch('/save_record', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, task, duration })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                fetchRecords();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function fetchRecords() {
+            fetch('/get_records')
+            .then(response => response.json())
+            .then(records => {
+                let recordList = document.getElementById('records');
+                recordList.innerHTML = '';
+
+                records.forEach(record => {
+                    let listItem = document.createElement('li');
+                    listItem.className = "border-b py-2";
+                    listItem.textContent = `${record.username} - ${record.task} - ${record.duration}`;
+                    recordList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error('Error fetching records:', error));
+        }
+
+        window.onload = function() {
+            fetchRecords();
+        };
+    </script>
+</body>
+</html>

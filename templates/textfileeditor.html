@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Text File Editor - Premium</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .text-shadow {
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+    }
+  </style>
+</head>
+<body class="relative min-h-screen bg-cover bg-no-repeat bg-center flex items-center justify-center" style="background-image: url('../static/images/textfileeditor.jpeg');">
+
+  <!-- Dark overlay -->
+  <div class="absolute inset-0 bg-black bg-opacity-60 z-0"></div>
+ <!-- Go to Dashboard Button -->
+ <div class="absolute top-6 right-6 z-20">
+    <a href="{{ url_for('dashboard') }}" 
+       class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold px-4 py-2 rounded-lg shadow-lg transition-all duration-300">
+      🏠 Go to Dashboard
+    </a>
+  </div>
+  <!-- Content -->
+  <div class="relative z-10 w-full max-w-3xl bg-black/40 backdrop-blur-lg border border-white/30 rounded-2xl shadow-xl p-8 text-white">
+    <h2 class="text-3xl font-extrabold mb-6 text-center text-shadow">📄 Text File Editor</h2>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-4 p-3 rounded-lg text-white text-sm font-medium {{ 'bg-green-500' if category == 'success' else 'bg-red-500' }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Create New File -->
+    <form action="/create" method="post" class="mb-6 flex gap-2">
+      <input type="text" name="filename" placeholder="New file name..." required
+             class="flex-1 px-4 py-2 rounded-lg bg-white/10 text-white placeholder-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-400">
+      <button type="submit"
+              class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-semibold px-5 py-2 rounded-lg transition-all duration-300">
+        Create
+      </button>
+    </form>
+
+    <!-- Upload File -->
+    <form action="/upload" method="post" enctype="multipart/form-data" class="mb-8 flex gap-2">
+      <input type="file" name="file" required
+             class="flex-1 text-white file:bg-white/30 file:border-none file:rounded-md file:text-white file:px-4 file:py-2 bg-white/10 rounded-lg border border-white/30">
+      <button type="submit"
+              class="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white font-semibold px-5 py-2 rounded-lg transition-all duration-300">
+        Upload
+      </button>
+    </form>
+
+    <h3 class="text-xl font-semibold mb-4 text-shadow">📁 Your Saved Files</h3>
+    <ul class="space-y-3 max-h-64 overflow-y-auto pr-2">
+      {% for file in files %}
+        <li class="flex justify-between items-center bg-white/10 border border-white/20 p-3 rounded-lg hover:bg-white/20 transition">
+          <span class="font-medium truncate">{{ file }}</span>
+          <div class="flex gap-2">
+            <a href="{{ url_for('edit_file', filename=file) }}"
+               class="bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded-lg text-sm font-semibold transition">
+              Edit
+            </a>
+            <a href="{{ url_for('download_file', filename=file) }}"
+               class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-semibold transition">
+              Download
+            </a>
+            <button onclick="deleteFile('{{ file }}')"
+                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold transition">
+              Delete
+            </button>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <script>
+    function deleteFile(filename) {
+      fetch(`/delete/${filename}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message);
+          location.reload();
+        })
+        .catch(error => console.error('Error:', error));
+    }
+  </script>
+</body>
+</html>

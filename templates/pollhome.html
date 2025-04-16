@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Polls</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center" style="background-image: url('../static/images/Poll.png');">
+
+    <div class="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-full max-w-2xl mx-4">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-blue-700">📊 Live Polls</h1>
+            <a href="/dashboard" class="text-sm text-white bg-blue-600 hover:bg-blue-800 px-4 py-2 rounded-lg transition duration-200 shadow-md">Go to Dashboard</a>
+        </div>
+
+        <!-- Poll Creation Form -->
+        <form action="/add_poll" method="post" class="bg-white p-4 rounded-lg shadow-lg mb-6">
+            <h2 class="text-xl font-semibold mb-3 text-gray-800">Create a Poll</h2>
+            <input type="text" name="question" placeholder="Enter Poll Question" required 
+                   class="w-full p-2 mb-3 border rounded-lg focus:ring-2 focus:ring-blue-400">
+            <textarea name="options" placeholder="Enter options (comma-separated)" required 
+                      class="w-full p-2 mb-3 border rounded-lg focus:ring-2 focus:ring-blue-400"></textarea>
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-800 transition duration-200">
+                ➕ Create Poll
+            </button>
+        </form>
+
+        <!-- Available Polls -->
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">Available Polls</h2>
+        <ul class="space-y-3">
+            {% for poll in polls %}
+                <li class="bg-white p-4 rounded-lg shadow-md flex justify-between items-center">
+                    <a href="{{ url_for('poll', poll_id=poll.id) }}" class="text-blue-700 font-medium hover:underline">
+                        📌 {{ poll.question }}
+                    </a>
+
+                    {% if current_user.is_authenticated and current_user.role == "admin" %}
+                        <form action="{{ url_for('delete_poll', poll_id=poll.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this poll?');">
+                            <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-800 transition duration-200">
+                                ❌ Delete
+                            </button>
+                        </form>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</body>
+</html>

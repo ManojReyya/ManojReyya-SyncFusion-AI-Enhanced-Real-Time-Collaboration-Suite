@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Group Meetings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glassmorphic {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    .btn {
+      transition: all 0.3s ease-in-out;
+    }
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
+  style="background-image: url('../static/images/Online.jpeg');">
+
+  <div class="max-w-lg w-full p-8 glassmorphic text-white text-center m-4">
+    <h1 class="text-3xl font-semibold italic mb-4">“Collaboration is the key to success.”</h1>
+    <hr class="border-white border-opacity-30 mb-6">
+    <div class="flex flex-col md:flex-row justify-center gap-4">
+      <a href="{{ url_for('meeting') }}" class="btn px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 shadow-lg">
+        ➕ Create Meeting
+      </a>
+      <a href="{{ url_for('join') }}" class="btn px-6 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2 shadow-lg">
+        🔗 Join Meeting
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>

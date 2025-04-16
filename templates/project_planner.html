@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project Planner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .text-shadow {
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+    }
+  </style>
+</head>
+<body class="relative bg-cover bg-center bg-no-repeat min-h-screen flex items-center justify-center"
+      style="background-image: url('../static/images/projectplanner.jpeg');">
+
+  <!-- Dark overlay for contrast -->
+  <div class="absolute inset-0 bg-black bg-opacity-60 z-0"></div>
+
+  <!-- Dashboard Button -->
+  <div class="absolute top-4 right-6 z-10">
+    <a href="/dashboard" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition-all duration-300">
+      🚀 Go to Dashboard
+    </a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="relative z-10 bg-white/10 backdrop-blur-md border border-white/30 shadow-2xl p-8 rounded-2xl w-full max-w-md text-white">
+    <h2 class="text-2xl font-bold text-center mb-6 text-shadow">🗺️ Project Roadmap Generator</h2>
+    <input type="text" id="projectTopic" class="w-full p-3 mb-4 rounded-lg bg-white/10 border border-white/30 placeholder-white focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Enter project topic">
+    <button onclick="generateRoadmap()" class="w-full bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-semibold py-2 rounded-lg transition duration-300">
+      📄 Generate Roadmap
+    </button>
+    <a id="downloadPdf" href="#" class="hidden mt-4 block text-center text-blue-300 underline hover:text-blue-100 transition">📥 View Plan</a>
+  </div>
+
+  <script>
+    function generateRoadmap() {
+      const topic = document.getElementById('projectTopic').value;
+      if (!topic) {
+        alert('Please enter a project topic.');
+        return;
+      }
+
+      fetch('/generate_roadmap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic })
+      })
+      .then(response => response.json())
+      .then(data => {
+        const downloadLink = document.getElementById('downloadPdf');
+        if (data.pdf) {
+          downloadLink.href = data.pdf;
+          downloadLink.classList.remove('hidden');
+          downloadLink.innerText = "📥 View Plan";
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    }
+  </script>
+</body>
+</html>

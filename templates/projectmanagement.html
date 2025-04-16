@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project Management Tool</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="min-h-screen bg-cover bg-center relative" style="background-image: url('../static/images/projectmanagement.jpeg');">
+
+  <!-- Overlay -->
+  <div class="absolute inset-0 bg-black bg-opacity-60 z-0"></div>
+
+  <!-- Main Content -->
+  <div class="relative z-10 p-4 sm:p-6 md:p-10">
+    <div class="max-w-5xl mx-auto bg-white bg-opacity-90 p-6 rounded-lg shadow-xl">
+
+        <h1 class="text-4xl font-extrabold text-center text-green-700 mb-10">🚀 Project Management Dashboard</h1>
+
+      <!-- Add Project Form -->
+      <div class="mb-6 p-4 bg-gray-50 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-6 text-gray-700">📝 Add New Project</h2>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <input type="text" id="employeeId" placeholder="Employee ID" class="border p-3 rounded w-full">
+          <input type="text" id="projectName" placeholder="Project Name" class="border p-3 rounded w-full">
+          <input type="text" id="taskName" placeholder="Project Task" class="border p-3 rounded w-full">
+          <input type="date" id="startDate" class="border p-3 rounded w-full">
+          <input type="date" id="deadlineDate" class="border p-3 rounded w-full">
+          <button onclick="addProject()" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition shadow-lg">
+            ➕ Add Project
+          </button>
+        </div>
+      </div>
+
+      <!-- Ongoing Projects -->
+      <div class="mb-6 p-4 bg-gray-100 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-6 text-gray-700">📌 Ongoing Projects</h2>
+        <ul id="projectList" class="space-y-4"></ul>
+      </div>
+
+      <!-- Completed Projects -->
+      <div class="mb-6 p-4 bg-green-100 rounded-lg shadow">
+        <h2 class="text-2xl font-bold mb-6 text-gray-700">✅ Completed Projects</h2>
+        <ul id="completedProjectList" class="space-y-4"></ul>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function addProject() {
+      const employeeId = document.getElementById('employeeId').value;
+      const projectName = document.getElementById('projectName').value;
+      const taskName = document.getElementById('taskName').value;
+      const startDate = document.getElementById('startDate').value;
+      const deadlineDate = document.getElementById('deadlineDate').value;
+
+      if (employeeId && projectName && taskName && startDate && deadlineDate) {
+        axios.post('/add_project', {
+          employee_id: employeeId,
+          name: projectName,
+          task: taskName,
+          start_date: startDate,
+          deadline: deadlineDate
+        }).then(res => {
+          alert(res.data.message);
+          fetchProjects();
+        }).catch(err => {
+          console.error("Error:", err);
+          alert("Failed to add project.");
+        });
+      } else {
+        alert("Please fill all fields.");
+      }
+    }
+
+    function updateProjectStatus(id, newStatus) {
+      axios.post('/update_status', { id, status: newStatus })
+        .then(res => {
+          alert(res.data.message);
+          fetchProjects();
+        }).catch(err => {
+          console.error("Status update failed:", err);
+        });
+    }
+
+    function fetchProjects() {
+      axios.get('/get_projects').then(res => {
+        const activeList = document.getElementById('projectList');
+        const completedList = document.getElementById('completedProjectList');
+        activeList.innerHTML = '';
+        completedList.innerHTML = '';
+
+        res.data.projects.forEach(project => {
+          const today = new Date();
+          const start = new Date(project.start_date);
+          const deadline = new Date(project.deadline);
+          let progress = (today - start) / (deadline - start);
+          let bgColor = "bg-gray-200";
+
+          if (today >= start) {
+            if (progress < 0.5) bgColor = "bg-blue-200";
+            else if (progress < 1) bgColor = "bg-yellow-200";
+            else bgColor = "bg-red-200";
+          }
+
+          const li = document.createElement('li');
+          li.className = `p-4 ${bgColor} rounded-lg shadow flex flex-col sm:flex-row justify-between items-start sm:items-center`;
+
+          li.innerHTML = `
+            <div>
+              <p class="font-bold text-lg">${project.name}</p>
+              <p class="text-sm text-gray-600">Task: ${project.task} | Employee: ${project.employee_id}</p>
+              <div class="flex items-center space-x-2 mt-2">
+                <label class="text-sm font-semibold">Status:</label>
+                <select class="border p-2 rounded" onchange="updateProjectStatus(${project.id}, this.value)">
+                  <option value="To Do" ${project.status === 'To Do' ? 'selected' : ''}>To Do</option>
+                  <option value="In Progress" ${project.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                  <option value="Completed" ${project.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                </select>
+              </div>
+              <p class="text-sm text-gray-600 mt-1">
+                <span class="font-semibold">Start:</span> ${project.start_date}
+                <span class="font-semibold ml-4">Deadline:</span> ${project.deadline}
+              </p>
+            </div>
+          `;
+
+          if (project.status === "Completed") {
+            completedList.appendChild(li);
+          } else {
+            activeList.appendChild(li);
+          }
+        });
+      }).catch(err => {
+        console.error("Fetch failed:", err);
+      });
+    }
+
+    window.onload = fetchProjects;
+  </script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SyncFusion Whiteboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body.dark-mode {
+      background-color: #1a202c;
+      color: white;
+    }
+    .dark-mode canvas {
+      background: #2d3748;
+    }
+    canvas {
+      cursor: crosshair;
+      background: white;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+  <!-- Header -->
+  <header class="bg-white dark:bg-gray-800 px-6 py-4 shadow-md flex justify-between items-center">
+    <h1 class="text-xl font-semibold">🧠 SyncFusion Whiteboard</h1>
+    <button id="toggle-theme" class="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded hover:bg-gray-300 dark:hover:bg-gray-600">
+      Toggle Theme
+    </button>
+  </header>
+
+  <!-- Main Section -->
+  <div class="flex flex-1 overflow-hidden">
+    <!-- Sidebar Tools -->
+    <aside class="w-20 bg-gray-200 dark:bg-gray-800 flex flex-col items-center py-4 space-y-4">
+      <button id="pen" title="Pen" class="hover:scale-110 transition-transform">🖊️</button>
+      <input type="range" id="pen-size" min="1" max="10" value="3" class="w-14">
+      <input type="color" id="pen-color" value="#000000" class="w-14 h-8 rounded-full">
+      <button id="clear" title="Clear" class="hover:scale-110 text-red-600">🗑️</button>
+      <button id="undo" title="Undo" class="hover:scale-110">↩️</button>
+      <button id="redo" title="Redo" class="hover:scale-110">↪️</button>
+      <button id="download" title="Download" class="hover:scale-110">📥</button>
+    </aside>
+
+    <!-- Canvas Area -->
+    <main class="flex-1 relative">
+      <canvas id="whiteboard" class="w-full h-full"></canvas>
+    </main>
+  </div>
+
+  <!-- Script -->
+  <script>
+    const canvas = document.getElementById("whiteboard");
+    const ctx = canvas.getContext("2d");
+    let drawing = false, history = [], historyStep = -1;
+    let penSize = 3, penColor = "#000000";
+
+    function resizeCanvas() {
+      const prev = canvas.toDataURL();
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+      const img = new Image();
+      img.src = prev;
+      img.onload = () => ctx.drawImage(img, 0, 0);
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("load", resizeCanvas);
+
+    function saveState() {
+      history = history.slice(0, historyStep + 1);
+      history.push(canvas.toDataURL());
+      historyStep++;
+    }
+
+    document.getElementById("pen").addEventListener("click", () => {
+      canvas.addEventListener("mousedown", startDrawing);
+      canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("mouseup", stopDrawing);
+    });
+
+    function startDrawing(e) {
+      drawing = true;
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+      ctx.strokeStyle = penColor;
+      ctx.lineWidth = penSize;
+    }
+
+    function draw(e) {
+      if (drawing) {
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+      }
+    }
+
+    function stopDrawing() {
+      drawing = false;
+      saveState();
+    }
+
+    document.getElementById("pen-size").addEventListener("input", e => penSize = e.target.value);
+    document.getElementById("pen-color").addEventListener("input", e => penColor = e.target.value);
+
+    document.getElementById("clear").addEventListener("click", () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      saveState();
+    });
+
+    document.getElementById("undo").addEventListener("click", () => {
+      if (historyStep > 0) {
+        historyStep--;
+        restoreCanvas(history[historyStep]);
+      }
+    });
+
+    document.getElementById("redo").addEventListener("click", () => {
+      if (historyStep < history.length - 1) {
+        historyStep++;
+        restoreCanvas(history[historyStep]);
+      }
+    });
+
+    function restoreCanvas(imageData) {
+      const img = new Image();
+      img.src = imageData;
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+      };
+    }
+
+    document.getElementById("download").addEventListener("click", () => {
+      const tempCanvas = document.createElement("canvas");
+      const tempCtx = tempCanvas.getContext("2d");
+
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+
+      tempCtx.fillStyle = document.body.classList.contains("dark-mode") ? "#2d3748" : "white";
+      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+      tempCtx.drawImage(canvas, 0, 0);
+
+      const link = document.createElement("a");
+      link.download = "whiteboard.png";
+      link.href = tempCanvas.toDataURL("image/png");
+      link.click();
+    });
+
+    document.getElementById("toggle-theme").addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      resizeCanvas();
+      saveState();
+    });
+  </script>
+</body>
+</html>

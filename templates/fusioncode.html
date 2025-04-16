@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-900 text-white h-screen flex flex-col p-4">
+    <div class="flex justify-between items-center p-4 bg-gray-800 rounded-lg border border-white">
+            <select id="language" class="bg-gray-700 text-white px-4 py-2 rounded">
+                <option value="python">Python</option>
+                <option value="java">Java</option>
+                <option value="cpp">C++</option>
+                <option value="c">C</option>
+                <option value="javascript">JavaScript</option>
+                <option value="typescript">TypeScript</option>
+                <option value="go">Go</option>
+                <option value="ruby">Ruby</option>
+                <option value="swift">Swift</option>
+                <option value="php">PHP</option>
+                <option value="rust">Rust</option>
+                <option value="kotlin">Kotlin</option>
+                <option value="dart">Dart</option>
+                <option value="perl">Perl</option>
+                <option value="bash">Bash</option>
+                <option value="r">R</option>
+                <option value="html">HTML</option>
+            </select>            
+        <div class="flex gap-2">
+            <button id="run" class="bg-blue-500 px-4 py-2 rounded">Run</button>
+            <button id="save" class="bg-green-500 px-4 py-2 rounded">Save</button>
+            <button id="download" class="bg-yellow-500 px-4 py-2 rounded">Download</button>
+            <button id="preview-btn" class="bg-purple-500 px-4 py-2 rounded hidden">Preview</button>
+        </div>
+    </div>
+    <div class="flex flex-1 gap-4 mt-4">
+        <div id="editor" class="w-2/3 h-full bg-gray-800 p-4 rounded-lg border border-white"></div>
+        <div class="w-1/3 p-4 flex flex-col bg-gray-800 rounded-lg border border-white">
+            <div class="mt-4 text-lg font-bold">Output:</div>
+            <pre id="output" class="bg-gray-800 p-2 h-48 overflow-auto rounded border border-white"></pre>
+        </div>
+    </div>
+    <div id="preview-container" class="mt-4 hidden">
+        <iframe id="preview" class="w-full h-64 bg-white rounded border"></iframe>
+    </div>
+    <script>
+        let editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/python");
+        editor.setFontSize("16px");
+        const previewButton = document.getElementById("preview-btn");
+        const previewContainer = document.getElementById("preview-container");
+
+        document.getElementById("language").addEventListener("change", function() {
+    let mode = {
+        "python": "python",
+        "java": "java",
+        "cpp": "c_cpp",
+        "c": "c_cpp",
+        "javascript": "javascript",
+        "typescript": "typescript",
+        "go": "golang",
+        "ruby": "ruby",
+        "swift": "swift",
+        "php": "php",
+        "rust": "rust",
+        "kotlin": "kotlin",
+        "dart": "dart",
+        "perl": "perl",
+        "bash": "sh",
+        "r": "r",
+        "html": "html"
+    }[this.value] || "text";
+
+    editor.session.setMode("ace/mode/" + mode);
+     // Show Preview button only for HTML
+     if (this.value === "html") {
+                previewButton.classList.remove("hidden");
+            } else {
+                previewButton.classList.add("hidden");
+                previewContainer.classList.add("hidden");
+            }
+});
+previewButton.addEventListener("click", function() {
+            let code = editor.getValue();
+            document.getElementById("preview").srcdoc = code;
+            previewContainer.classList.remove("hidden");
+        });
+
+document.getElementById("run").addEventListener("click", async function() {
+            const code = editor.getValue();
+            const language = document.getElementById("language").value;
+            const userInput = document.getElementById("input").value;
+
+            const response = await fetch("/run", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code, language, input: userInput })
+            });
+
+            const result = await response.json();
+            document.getElementById("output").innerText = result.output || result.error;
+        });
+        document.getElementById("save").addEventListener("click", async function() {
+    const code = editor.getValue();
+    const language = document.getElementById("language").value;
+
+    const response = await fetch("/save_data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, language })
+    });
+
+    const result = await response.json();
+    alert(result.message); // Show success message
+});
+document.getElementById("download").addEventListener("click", function() {
+    const language = document.getElementById("language").value;
+    const ext = {
+        "python": ".py",
+        "java": ".java",
+        "cpp": ".cpp",
+        "c": ".c",
+        "javascript": ".js",
+        "typescript": ".ts",
+        "go": ".go",
+        "ruby": ".rb",
+        "swift": ".swift",
+        "php": ".php",
+        "rust": ".rs",
+        "kotlin": ".kt",
+        "dart": ".dart",
+        "perl": ".pl",
+        "bash": ".sh",
+        "r": ".r"
+    }[language] || ".txt";
+
+    const filename = "code" + ext;
+    window.location.href = "/download/" + filename;
+});
+
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{ poll.question }}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center" style="background-image: url('../static/images/Poll.png');">
+
+    <div class="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-full max-w-2xl mx-4">
+        <h1 class="text-3xl font-bold text-blue-700 text-center mb-6">📊 {{ poll.question }}</h1>
+
+        <!-- Vote Form -->
+        <form action="{{ url_for('vote', poll_id=poll.id) }}" method="post" class="bg-white p-5 rounded-xl shadow-lg mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-3">Cast Your Vote</h2>
+            <div class="space-y-3">
+                {% for option in options %}
+                    <label class="flex items-center p-3 bg-gray-100 rounded-lg shadow-md cursor-pointer hover:bg-blue-100 transition duration-200">
+                        <input type="radio" name="option" value="{{ option.id }}" class="mr-3 accent-blue-600">
+                        <span class="text-lg">{{ option.text }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+            <button type="submit" class="w-full bg-green-600 text-white py-2 mt-5 rounded-lg hover:bg-green-800 transition duration-200">
+                ✅ Vote Now
+            </button>
+        </form>
+
+        <!-- Poll Results -->
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">📊 Poll Results</h2>
+        <ul class="space-y-2">
+            {% for option in options %}
+                <li class="bg-white p-4 rounded-lg shadow-md flex justify-between items-center">
+                    <span class="text-gray-800 font-medium">{{ option.text }}</span>
+                    <span class="text-blue-700 font-bold">{{ option.votes }} votes</span>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Back to Polls Link -->
+        <a href="{{ url_for('pollhome') }}" class="block text-center text-white mt-6 font-semibold hover:underline">
+            🔙 Back to Polls
+        </a>
+    </div>
+
+</body>
+</html>

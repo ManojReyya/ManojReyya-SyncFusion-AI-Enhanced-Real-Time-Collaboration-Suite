@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Text Summarizer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-image: url('../static/images/sum.jpeg');
+      background-size: cover;
+      background-position: center;
+    }
+    .glass {
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      background-color: rgba(255, 255, 255, 0.65);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+  </style>
+</head>
+<body class="flex justify-center items-center min-h-screen px-4 py-6">
+    <div class="absolute top-6 right-6 z-20">
+        <a href="{{ url_for('dashboard') }}" 
+           class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold px-4 py-2 rounded-lg shadow-lg transition-all duration-300">
+          🏠 Go to Dashboard
+        </a>
+      </div>
+  <div class="glass p-6 shadow-2xl w-full max-w-3xl">
+    <h2 class="text-3xl font-bold mb-4 text-center text-blue-800">Text Summarizer</h2>
+
+    <textarea
+      id="content"
+      class="w-full p-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+      rows="8"
+      placeholder="Paste your text here to summarize..."
+    ></textarea>
+
+    <button
+      onclick="summarizeText()"
+      class="w-full bg-blue-600 text-white font-semibold py-3 px-6 mt-5 rounded-xl hover:bg-blue-700 transition duration-300"
+    >
+      ✨ Summarize
+    </button>
+
+    <h3 class="text-xl font-semibold mt-6 text-gray-800">Summary:</h3>
+    <p id="summary" class="bg-gray-100 text-gray-800 p-4 rounded-xl mt-2 whitespace-pre-wrap min-h-[60px]"></p>
+  </div>
+
+  <script>
+    function summarizeText() {
+      const content = document.getElementById("content").value;
+      fetch("/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: content })
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById("summary").textContent = data.summary;
+      })
+      .catch(error => console.error("Error:", error));
+    }
+  </script>
+</body>
+</html>

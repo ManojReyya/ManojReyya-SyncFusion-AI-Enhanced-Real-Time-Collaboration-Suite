@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit File</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .text-shadow {
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+    }
+  </style>
+</head>
+<body class="relative min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center" style="background-image: url('../static/images/text%20file%20editor.jpeg');">
+
+  <!-- Dark overlay -->
+  <div class="absolute inset-0 bg-black bg-opacity-60 z-0"></div>
+
+  <!-- Main content -->
+  <div class="relative z-10 w-full max-w-3xl bg-white/10 backdrop-blur-md border border-white/30 p-8 rounded-2xl shadow-2xl">
+    <h2 class="text-3xl font-bold text-white text-shadow mb-6 text-center">Editing: {{ filename }}</h2>
+
+    <form action="{{ url_for('edit_file', filename=filename) }}" method="post">
+      <textarea name="content" rows="14" class="w-full p-4 bg-gray-800 text-white rounded-lg border border-gray-300 shadow-inner focus:outline-none resize-none">{{ content }}</textarea>
+      
+      <div class="flex justify-end mt-6 space-x-4">
+        <a href="{{ url_for('textfileeditor') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-5 py-2 rounded-lg transition font-semibold">Cancel</a>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition font-semibold">💾 Save</button>
+      </div>
+    </form>
+  </div>
+
+</body>
+</html>

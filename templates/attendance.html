@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Attendance Records</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: url('https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1950&q=80') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center px-4 py-8 text-white">
+
+  <div class="w-full max-w-5xl glass rounded-2xl shadow-2xl p-6">
+    <h2 class="text-4xl font-bold text-center text-white drop-shadow mb-6 animate-fade-in-down">
+      📅 All Users' Attendance
+    </h2>
+
+    <!-- Search Form -->
+    <form method="POST" class="flex flex-col md:flex-row items-center gap-4 mb-6 justify-center">
+      <input 
+        type="text" 
+        name="search" 
+        value="{{ search_query }}" 
+        placeholder="🔍 Search by Username"
+        class="p-3 w-full md:w-96 rounded-lg border border-gray-300 focus:ring-4 focus:ring-blue-400 text-black"
+      />
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition font-semibold">
+        Search
+      </button>
+    </form>
+
+    <!-- Attendance Table -->
+    <div class="overflow-x-auto scrollbar-hide rounded-xl bg-white bg-opacity-90 text-black shadow-lg">
+      <table class="w-full text-center">
+        <thead>
+          <tr class="bg-blue-600 text-white text-lg">
+            <th class="p-4">📅 Date</th>
+            <th class="p-4">👤 Username</th>
+            <th class="p-4">✅ Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in attendance_records %}
+          <tr class="border-b hover:bg-blue-100 transition">
+            <td class="p-4">{{ record.date }}</td>
+            <td class="p-4 font-medium">{{ record.user.username }}</td>
+            <td class="p-4">
+              <span class="px-3 py-1 rounded-full text-white font-semibold 
+                {% if record.status == 'Present' %}
+                  bg-green-500
+                {% else %}
+                  bg-red-500
+                {% endif %}">
+                {{ record.status }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mt-6 text-center">
+      <a href="{{ url_for('dashboard') }}"
+         class="inline-block bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 px-6 py-2 rounded-full font-bold shadow-lg text-white transition">
+        🔙 Back to Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Animation -->
+  <script>
+    document.querySelector('h2').classList.add('animate-fade-in-down');
+  </script>
+  <style>
+    @keyframes fade-in-down {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in-down {
+      animation: fade-in-down 0.8s ease-out;
+    }
+  </style>
+
+</body>
+</html>
