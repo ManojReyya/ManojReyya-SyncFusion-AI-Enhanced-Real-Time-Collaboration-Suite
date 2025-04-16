@@ -1,1 +1,1 @@
-# ManojReyya-SyncFusion-AI-Enhanced-Real-Time-Collaboration-Suite
+# SyncFusion-AI-Enhanced-Real-Time-Collaboration-Suite
